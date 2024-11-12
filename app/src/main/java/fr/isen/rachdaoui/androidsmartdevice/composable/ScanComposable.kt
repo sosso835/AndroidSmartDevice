@@ -50,7 +50,6 @@ fun ScanBLEScreen() {
     LaunchedEffect(Unit) {
         // Vérifier si Bluetooth est disponible
         bluetoothAvailable = bluetoothAdapter != null
-
         // Vérifier si Bluetooth est activé
         bluetoothEnabled = bluetoothAdapter?.isEnabled == true
 
