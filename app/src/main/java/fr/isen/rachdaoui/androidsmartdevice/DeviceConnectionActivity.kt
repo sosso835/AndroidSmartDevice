@@ -66,7 +66,7 @@ class DeviceConnectionActivity : ComponentActivity() {
             override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     val services = gatt.services
-                    ledCharacteristic = services?.get(2)?.characteristics?.get(0)
+                    ledCharacteristic = services?.getOrNull(2)?.characteristics?.getOrNull(0)
                     Log.d("BLE", "Services discovered: ${services.map { it.uuid }}")
                 } else {
                     Log.e("BLE", "Service discovery failed with status $status")
@@ -95,14 +95,12 @@ class DeviceConnectionActivity : ComponentActivity() {
         Log.d("BLE", "Disconnected from device.")
         Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
     }
-
-    enum class LEDStateEnum(val hex: ByteArray) {
+    enum class LEDStateEnum(val hex:ByteArray){
         LED_1(byteArrayOf(0x01)),
         LED_2(byteArrayOf(0x02)),
         LED_3(byteArrayOf(0x03)),
         NONE(byteArrayOf(0x00)),
     }
-
     private fun writeToLEDCharacteristic(state: LEDStateEnum) {
         if (ledCharacteristic != null) {
             ledCharacteristic?.value = state.hex
@@ -111,6 +109,13 @@ class DeviceConnectionActivity : ComponentActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
                 return
             }
             bluetoothGatt?.writeCharacteristic(ledCharacteristic)
@@ -128,94 +133,50 @@ class DeviceConnectionActivity : ComponentActivity() {
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Center
         ) {
-            // Header
-            Text(
-                text = "Device Control Panel",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+            Text("Device Info", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Device Info Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "Device Info",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Name: ${deviceName ?: "Unknown"}",
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = "Address: ${deviceAddress ?: "Unknown"}",
-                    fontSize = 16.sp
-                )
-            }
+            Text("Name: ${deviceName ?: "Unknown"}")
+            Text("Address: ${deviceAddress ?: "Unknown"}")
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Action Buttons Section
-            Text(
-                text = "Controls",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
             Button(
                 onClick = { connectToDevice() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Connect to Device")
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_1) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn On LED 1")
             }
-
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_2) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Turn On LED 2")
+            }
+            Button(
+                onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_3) },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn On LED 2")
             }
 
-            Button(
-                onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_3) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-            ) {
-                Text("Turn On LED 3")
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.NONE) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn Off LED")
             }
@@ -224,25 +185,10 @@ class DeviceConnectionActivity : ComponentActivity() {
 
             Button(
                 onClick = { disconnectFromDevice() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color.Red
-                )
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Disconnect from Device")
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Footer
-            Text(
-                text = "Control your device efficiently",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Light,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
         }
     }
 
